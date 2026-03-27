@@ -2,6 +2,9 @@ import prettier from 'eslint-config-prettier';
 
 export default [
   {
+    ignores: ['eslint.config.*'],
+  },
+  {
     files: ['**/*.js'],
     languageOptions: {
       ecmaVersion: 2022,
@@ -24,13 +27,15 @@ export default [
     },
   },
   {
-    files: ['test-*.spec.js', 'eslint.config.js'],
+    files: ['**/*.spec.js', 'scripts/**/*.js', 'playwright.config.js', 'eslint.config.*'],
     languageOptions: {
-      sourceType: 'module',
+      sourceType: 'script',
       globals: {
         require: 'readonly',
         __dirname: 'readonly',
         process: 'readonly',
+        module: 'readonly',
+        exports: 'readonly',
       },
     },
   },

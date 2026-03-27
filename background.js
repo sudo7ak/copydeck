@@ -1,6 +1,28 @@
 // Allow content scripts to access session storage
 chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 
+// Register an optional content script that can be enabled after the user grants host permissions.
+// This improves review posture (least privilege) while keeping the default http/https injection.
+async function ensureOptionalContentScriptRegistered() {
+  if (!chrome.scripting || !chrome.scripting.registerContentScripts) return;
+
+  try {
+    await chrome.scripting.registerContentScripts([
+      {
+        id: 'copydeck_optional',
+        js: ['content-optional.js'],
+        matches: ['http://*/*', 'https://*/*'],
+        runAt: 'document_start',
+        persistAcrossSessions: true,
+      },
+    ]);
+  } catch (e) {
+    // registerContentScripts throws if already registered.
+  }
+}
+
+ensureOptionalContentScriptRegistered();
+
 // Initialize default slot if storage is empty
 const DEFAULT_SLOT = {
   id: 1,

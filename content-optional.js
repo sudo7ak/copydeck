@@ -1,3 +1,8 @@
+// Optional content script: only injected into sites the user has granted via optional host permissions.
+// Uses the same logic as content.js.
+
+// NOTE: This file is intentionally kept in sync with content.js.
+
 let slots = [];
 let enabled = true;
 
@@ -93,9 +98,6 @@ document.addEventListener(
   true,
 );
 
-// Load state from background via message passing.
-// In some cases (e.g., right after install/reload), the service worker may not be ready yet.
-// Retry a few times so we don't end up with empty state and non-working shortcuts.
 function requestState(attempt = 0) {
   chrome.runtime.sendMessage({ type: 'getState' }, (response) => {
     if (response && (response.slots || response.enabled !== undefined)) {
@@ -113,7 +115,6 @@ function requestState(attempt = 0) {
 
 requestState();
 
-// Listen for state updates pushed from background
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === 'stateUpdated') {
     slots = msg.slots || [];

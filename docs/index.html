@@ -1,0 +1,1385 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CopyDeck — Keyboard Clipboard Shortcuts for Chrome</title>
+    <meta
+      name="description"
+      content="Build a Chrome extension that binds keyboard shortcuts to text values for instant clipboard copying. Step-by-step tutorial."
+    />
+    <style>
+      :root {
+        --green: #4caf50;
+        --green-light: #e8f5e9;
+        --green-dark: #388e3c;
+        --bg: #fafbfc;
+        --card: #ffffff;
+        --text: #1a1a2e;
+        --text-muted: #6b7280;
+        --border: #e5e7eb;
+        --code-bg: #f3f4f6;
+        --code-block-bg: #1e1e2e;
+        --code-block-text: #cdd6f4;
+        --radius: 12px;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+        --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        line-height: 1.7;
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── Navigation ── */
+      nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        padding: 0 24px;
+      }
+
+      nav .nav-inner {
+        max-width: 900px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 56px;
+      }
+
+      nav .logo {
+        font-weight: 800;
+        font-size: 18px;
+        color: var(--green);
+        text-decoration: none;
+        letter-spacing: -0.5px;
+      }
+
+      nav .nav-links {
+        display: flex;
+        gap: 24px;
+      }
+
+      nav .nav-links a {
+        font-size: 14px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.15s;
+      }
+
+      nav .nav-links a:hover {
+        color: var(--green);
+      }
+
+      /* ── Hero ── */
+      .hero {
+        text-align: center;
+        padding: 80px 24px 60px;
+        background: linear-gradient(180deg, var(--green-light) 0%, var(--bg) 100%);
+      }
+
+      .hero-badge {
+        display: inline-block;
+        background: var(--green);
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 20px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+
+      .hero h1 {
+        font-size: clamp(36px, 5vw, 56px);
+        font-weight: 800;
+        letter-spacing: -1.5px;
+        line-height: 1.1;
+        margin-bottom: 16px;
+        color: var(--text);
+      }
+
+      .hero h1 span {
+        color: var(--green);
+      }
+
+      .hero p {
+        font-size: 18px;
+        color: var(--text-muted);
+        max-width: 540px;
+        margin: 0 auto 32px;
+        line-height: 1.6;
+      }
+
+      .hero-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background: var(--green);
+        color: white;
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+      }
+
+      .btn-primary:hover {
+        background: var(--green-dark);
+        box-shadow: 0 4px 16px rgba(76, 175, 80, 0.35);
+        transform: translateY(-1px);
+      }
+
+      .btn-secondary {
+        background: var(--card);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .btn-secondary:hover {
+        background: var(--code-bg);
+        transform: translateY(-1px);
+      }
+
+      /* ── Features Grid ── */
+      .features {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 60px 24px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .feature-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        box-shadow: var(--shadow);
+        transition:
+          box-shadow 0.2s ease,
+          transform 0.2s ease;
+      }
+
+      .feature-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+      }
+
+      .feature-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--green-light);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-bottom: 14px;
+      }
+
+      .feature-card h3 {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+
+      .feature-card p {
+        font-size: 14px;
+        color: var(--text-muted);
+        line-height: 1.6;
+      }
+
+      /* ── Content Sections ── */
+      .container {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      section {
+        padding: 60px 0;
+        border-top: 1px solid var(--border);
+      }
+
+      section:first-of-type {
+        border-top: none;
+      }
+
+      h2 {
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin-bottom: 8px;
+      }
+
+      h2 .step-num {
+        color: var(--green);
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      h3 {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 32px 0 12px;
+      }
+
+      .section-desc {
+        color: var(--text-muted);
+        font-size: 16px;
+        margin-bottom: 28px;
+        line-height: 1.7;
+      }
+
+      p {
+        margin-bottom: 16px;
+      }
+
+      /* ── Architecture Diagram ── */
+      .arch-diagram {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 32px;
+        margin: 24px 0;
+        box-shadow: var(--shadow);
+        overflow-x: auto;
+      }
+
+      .arch-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .arch-box {
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+      }
+
+      .arch-box h4 {
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--green);
+      }
+
+      .arch-box ul {
+        list-style: none;
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      .arch-box ul li {
+        padding: 2px 0;
+      }
+
+      .arch-storage {
+        background: var(--green-light);
+        border: 2px solid var(--green);
+        border-radius: 10px;
+        padding: 12px;
+        text-align: center;
+        max-width: 260px;
+        margin: 0 auto;
+      }
+
+      .arch-storage h4 {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--green-dark);
+      }
+      .arch-storage p {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin: 0;
+      }
+
+      .arch-arrows {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 13px;
+        margin: 8px 0;
+        letter-spacing: 2px;
+      }
+
+      /* ── Code Blocks ── */
+      pre {
+        background: var(--code-block-bg);
+        color: var(--code-block-text);
+        border-radius: 10px;
+        padding: 20px 24px;
+        overflow-x: auto;
+        font-size: 13.5px;
+        line-height: 1.65;
+        margin: 16px 0 24px;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Menlo', monospace;
+        box-shadow: var(--shadow);
+      }
+
+      pre .code-label {
+        display: block;
+        color: #6b7280;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      code {
+        background: var(--code-bg);
+        padding: 2px 7px;
+        border-radius: 5px;
+        font-size: 14px;
+        font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+      }
+
+      pre code {
+        background: none;
+        padding: 0;
+        border-radius: 0;
+        font-size: inherit;
+      }
+
+      /* Syntax highlighting */
+      .kw {
+        color: #cba6f7;
+      }
+      .str {
+        color: #a6e3a1;
+      }
+      .cm {
+        color: #6c7086;
+        font-style: italic;
+      }
+      .fn {
+        color: #89b4fa;
+      }
+      .num {
+        color: #fab387;
+      }
+      .prop {
+        color: #89dceb;
+      }
+      .op {
+        color: #94e2d5;
+      }
+      .tag {
+        color: #f38ba8;
+      }
+      .attr {
+        color: #a6e3a1;
+      }
+
+      /* ── Tables ── */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0 24px;
+        font-size: 14px;
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+
+      thead {
+        background: var(--code-bg);
+      }
+
+      th {
+        text-align: left;
+        padding: 12px 16px;
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--border);
+      }
+
+      td {
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      tbody tr {
+        background: var(--card);
+      }
+      tbody tr:hover {
+        background: var(--code-bg);
+      }
+
+      /* ── Callout Boxes ── */
+      .callout {
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin: 20px 0;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .callout-title {
+        font-weight: 700;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+      }
+
+      .callout-tip {
+        background: var(--green-light);
+        border-left: 4px solid var(--green);
+      }
+
+      .callout-tip .callout-title {
+        color: var(--green-dark);
+      }
+
+      .callout-warn {
+        background: #fff8e1;
+        border-left: 4px solid #ff9800;
+      }
+
+      .callout-warn .callout-title {
+        color: #e65100;
+      }
+
+      .callout-info {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+      }
+
+      .callout-info .callout-title {
+        color: #1565c0;
+      }
+
+      /* ── Data Flow ── */
+      .flow {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin: 24px 0;
+      }
+
+      .flow-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .flow-line {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 32px;
+      }
+
+      .flow-dot {
+        width: 12px;
+        height: 12px;
+        background: var(--green);
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 4px;
+      }
+
+      .flow-connector {
+        width: 2px;
+        height: 32px;
+        background: var(--border);
+      }
+
+      .flow-content {
+        padding-bottom: 16px;
+      }
+
+      .flow-content strong {
+        font-size: 14px;
+        display: block;
+        margin-bottom: 2px;
+      }
+
+      .flow-content span {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      /* ── Checklist ── */
+      .checklist {
+        list-style: none;
+        margin: 16px 0;
+      }
+
+      .checklist li {
+        padding: 8px 0 8px 32px;
+        position: relative;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .checklist li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 10px;
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--border);
+        border-radius: 4px;
+      }
+
+      /* ── Footer ── */
+      footer {
+        text-align: center;
+        padding: 40px 24px;
+        border-top: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+
+      footer a {
+        color: var(--green);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      footer a:hover {
+        text-decoration: underline;
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 640px) {
+        .hero {
+          padding: 50px 20px 40px;
+        }
+        .arch-grid {
+          grid-template-columns: 1fr;
+        }
+        nav .nav-links {
+          gap: 16px;
+        }
+        nav .nav-links a {
+          font-size: 13px;
+        }
+        pre {
+          font-size: 12.5px;
+          padding: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav>
+      <div class="nav-inner">
+        <a href="#" class="logo">CopyDeck</a>
+        <div class="nav-links">
+          <a href="#architecture">Architecture</a>
+          <a href="#tutorial">Tutorial</a>
+          <a href="#testing">Testing</a>
+          <a href="https://github.com/sudo7ak/copydeck" target="_blank">GitHub</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-badge">Chrome Extension</div>
+      <h1>Build <span>CopyDeck</span></h1>
+      <p>
+        A step-by-step tutorial for building a Chrome extension that binds keyboard shortcuts to
+        text values for instant clipboard copying.
+      </p>
+      <div class="hero-actions">
+        <a href="#tutorial" class="btn btn-primary">Start Tutorial</a>
+        <a href="https://github.com/sudo7ak/copydeck" class="btn btn-secondary" target="_blank"
+          >View Source</a
+        >
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">&#9000;</div>
+        <h3>Keyboard-Driven</h3>
+        <p>
+          Bind up to 10 custom keyboard shortcuts to text values. Press a combo, copy instantly.
+        </p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9889;</div>
+        <h3>Instant Feedback</h3>
+        <p>Toast notifications and badge icons confirm every copy action in real time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128274;</div>
+        <h3>Privacy-First</h3>
+        <p>Session-only storage clears on browser restart. No data leaves your machine.</p>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Architecture -->
+      <section id="architecture">
+        <h2><span class="step-num">Overview</span>Architecture</h2>
+        <p class="section-desc">
+          CopyDeck has three components that communicate via Chrome's messaging APIs, sharing state
+          through session storage.
+        </p>
+
+        <div class="arch-diagram">
+          <div class="arch-grid">
+            <div class="arch-box">
+              <h4>Popup UI</h4>
+              <ul>
+                <li>Edit slot values</li>
+                <li>Record keybindings</li>
+                <li>Toggle on/off</li>
+              </ul>
+            </div>
+            <div class="arch-box">
+              <h4>Background</h4>
+              <ul>
+                <li>Storage init</li>
+                <li>Message routing</li>
+                <li>Badge &amp; icon</li>
+              </ul>
+            </div>
+            <div class="arch-box">
+              <h4>Content Script</h4>
+              <ul>
+                <li>Keydown listener</li>
+                <li>Clipboard copy</li>
+                <li>Toast notification</li>
+              </ul>
+            </div>
+          </div>
+          <div class="arch-arrows">&#8595; &#8597; &#8595;</div>
+          <div class="arch-storage">
+            <h4>chrome.storage.session</h4>
+            <p>{ slots, enabled }</p>
+          </div>
+        </div>
+
+        <h3>Data Flow</h3>
+        <div class="flow">
+          <div class="flow-step">
+            <div class="flow-line">
+              <div class="flow-dot"></div>
+              <div class="flow-connector"></div>
+            </div>
+            <div class="flow-content">
+              <strong>User edits slot in popup</strong
+              ><span>popup.js saves to chrome.storage.session</span>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-line">
+              <div class="flow-dot"></div>
+              <div class="flow-connector"></div>
+            </div>
+            <div class="flow-content">
+              <strong>Background detects change</strong
+              ><span>onChanged listener fires, queries all tabs</span>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-line">
+              <div class="flow-dot"></div>
+              <div class="flow-connector"></div>
+            </div>
+            <div class="flow-content">
+              <strong>Content scripts receive update</strong
+              ><span>stateUpdated message pushes new slots to every tab</span>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-line">
+              <div class="flow-dot"></div>
+              <div class="flow-connector"></div>
+            </div>
+            <div class="flow-content">
+              <strong>User presses shortcut</strong
+              ><span>content.js matches keybinding, copies value to clipboard</span>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-line"><div class="flow-dot"></div></div>
+            <div class="flow-content">
+              <strong>Feedback shown</strong
+              ><span>Toast appears on page, badge flashes on extension icon</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tutorial -->
+      <section id="tutorial">
+        <h2><span class="step-num">Use it</span>How to use the extension</h2>
+        <p class="section-desc">
+          A quick, user-focused walkthrough: install CopyDeck, set a value, trigger a shortcut on
+          any page, and manage slots.
+        </p>
+
+        <h3>1) Install from the Chrome Web Store</h3>
+        <ol>
+          <li>
+            Open the <strong>CopyDeck</strong> listing in the
+            <a href="https://sudo7ak.github.io/copydeck/" target="_blank">Chrome Web Store</a>
+          </li>
+          <li>Click <strong>Add to Chrome</strong> → <strong>Add extension</strong></li>
+          <li>
+            (Optional) Click the puzzle-piece icon and <strong>pin CopyDeck</strong> to the toolbar
+          </li>
+          <li>Review the requested permissions (CopyDeck needs clipboard + storage to work)</li>
+        </ol>
+
+        <h3>2) Open the popup</h3>
+        <p>Click the CopyDeck icon. You’ll see your slots (up to 10) and the on/off toggle.</p>
+        <p>
+          <img
+            src="assets/tutorial/01-popup.png"
+            alt="CopyDeck popup"
+            style="
+              width: 100%;
+              border: 1px solid var(--border);
+              border-radius: var(--radius);
+              box-shadow: var(--shadow);
+              margin: 12px 0 20px;
+            "
+          />
+        </p>
+
+        <h3>3) Set a slot value</h3>
+        <p>Type the text you want to copy (email, address, snippet, etc.) into the slot input.</p>
+        <p>
+          <img
+            src="assets/tutorial/03-filled-slot.png"
+            alt="Slot with a value filled"
+            style="
+              width: 100%;
+              border: 1px solid var(--border);
+              border-radius: var(--radius);
+              box-shadow: var(--shadow);
+              margin: 12px 0 20px;
+            "
+          />
+        </p>
+
+        <h3>4) Record a shortcut</h3>
+        <p>
+          Click <strong>Record</strong>, then press your desired key combo (must include Ctrl, Alt,
+          or Cmd). Duplicate shortcuts are blocked.
+        </p>
+        <p>
+          <img
+            src="assets/tutorial/02-recording.png"
+            alt="Recording a keybinding"
+            style="
+              width: 100%;
+              border: 1px solid var(--border);
+              border-radius: var(--radius);
+              box-shadow: var(--shadow);
+              margin: 12px 0 20px;
+            "
+          />
+        </p>
+
+        <h3>5) Use it on any page</h3>
+        <p>
+          Go to any website and press your shortcut. CopyDeck copies the slot value to your
+          clipboard and shows a toast.
+        </p>
+        <p>
+          <img
+            src="assets/tutorial/04-toast.png"
+            alt="Toast confirming copy"
+            style="
+              width: 100%;
+              border: 1px solid var(--border);
+              border-radius: var(--radius);
+              box-shadow: var(--shadow);
+              margin: 12px 0 20px;
+            "
+          />
+        </p>
+
+        <div class="callout callout-tip">
+          <div class="callout-title">Tip</div>
+          If a site restricts the modern Clipboard API, CopyDeck automatically falls back to a
+          legacy copy method.
+        </div>
+
+        <h3>6) Toggle on/off</h3>
+        <p>
+          Use the toggle in the popup header to disable all shortcuts instantly (the icon also
+          switches to a disabled style).
+        </p>
+        <p>
+          <img
+            src="assets/tutorial/05-disabled-toggle.png"
+            alt="Disabled toggle"
+            style="
+              width: 100%;
+              border: 1px solid var(--border);
+              border-radius: var(--radius);
+              box-shadow: var(--shadow);
+              margin: 12px 0 20px;
+            "
+          />
+        </p>
+
+        <h3>Regenerating these screenshots</h3>
+        <p class="section-desc">Screenshots in this section were generated with Playwright.</p>
+        <pre><code><span class="code-label">Terminal</span>npx playwright test docs/generate-tutorial-screenshots.spec.js</code></pre>
+
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 44px 0" />
+
+        <h2><span class="step-num">Step 1</span>Project Setup</h2>
+        <p class="section-desc">
+          Create the folder structure and the manifest file that tells Chrome about your extension.
+        </p>
+
+        <pre><code><span class="code-label">Terminal</span><span class="fn">mkdir</span> -p copydeck/popup copydeck/icons
+<span class="fn">cd</span> copydeck</code></pre>
+
+        <h3>File Structure</h3>
+        <pre><code><span class="code-label">Project Layout</span>copydeck/
+&#9500;&#9472;&#9472; manifest.json       <span class="cm"># Extension config</span>
+&#9500;&#9472;&#9472; background.js       <span class="cm"># Service worker</span>
+&#9500;&#9472;&#9472; content.js          <span class="cm"># Injected into pages</span>
+&#9500;&#9472;&#9472; popup/
+&#9474;   &#9500;&#9472;&#9472; popup.html      <span class="cm"># Popup UI</span>
+&#9474;   &#9500;&#9472;&#9472; popup.css       <span class="cm"># Popup styles</span>
+&#9474;   &#9492;&#9472;&#9472; popup.js        <span class="cm"># Popup logic</span>
+&#9492;&#9472;&#9472; icons/              <span class="cm"># 16/48/128px icons</span></code></pre>
+
+        <h3>manifest.json</h3>
+        <pre><code><span class="code-label">manifest.json</span>{
+  <span class="prop">"manifest_version"</span>: <span class="num">3</span>,
+  <span class="prop">"name"</span>: <span class="str">"CopyDeck"</span>,
+  <span class="prop">"version"</span>: <span class="str">"1.0.0"</span>,
+  <span class="prop">"description"</span>: <span class="str">"Bind keyboard shortcuts to text values for quick clipboard copying"</span>,
+  <span class="prop">"permissions"</span>: [<span class="str">"clipboardWrite"</span>, <span class="str">"storage"</span>, <span class="str">"activeTab"</span>],
+  <span class="prop">"action"</span>: {
+    <span class="prop">"default_popup"</span>: <span class="str">"popup/popup.html"</span>,
+    <span class="prop">"default_icon"</span>: {
+      <span class="prop">"16"</span>: <span class="str">"icons/icon16.png"</span>,
+      <span class="prop">"48"</span>: <span class="str">"icons/icon48.png"</span>,
+      <span class="prop">"128"</span>: <span class="str">"icons/icon128.png"</span>
+    }
+  },
+  <span class="prop">"background"</span>: { <span class="prop">"service_worker"</span>: <span class="str">"background.js"</span> },
+  <span class="prop">"content_scripts"</span>: [{
+    <span class="prop">"matches"</span>: [<span class="str">"&lt;all_urls&gt;"</span>],
+    <span class="prop">"js"</span>: [<span class="str">"content.js"</span>],
+    <span class="prop">"run_at"</span>: <span class="str">"document_start"</span>
+  }]
+}</code></pre>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>manifest_version: 3</code></td>
+              <td>Required for new Chrome extensions (MV2 is deprecated)</td>
+            </tr>
+            <tr>
+              <td><code>clipboardWrite</code></td>
+              <td>Permission to write to the user's clipboard</td>
+            </tr>
+            <tr>
+              <td><code>storage</code></td>
+              <td>Access to <code>chrome.storage.session</code> for ephemeral data</td>
+            </tr>
+            <tr>
+              <td><code>run_at: "document_start"</code></td>
+              <td>Inject content script early so keyboard listeners are ready</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2><span class="step-num">Step 2</span>Background Service Worker</h2>
+        <p class="section-desc">
+          The background script initializes storage, routes messages between popup and content
+          scripts, and manages the extension badge.
+        </p>
+
+        <div class="callout callout-warn">
+          <div class="callout-title">Gotcha</div>
+          <code>chrome.storage.session</code> is invisible to content scripts by default. You must
+          call <code>setAccessLevel()</code> to open it up &mdash; without this, content scripts
+          silently get empty data.
+        </div>
+
+        <pre><code><span class="code-label">background.js</span><span class="cm">// Open session storage to content scripts</span>
+chrome.storage.session.<span class="fn">setAccessLevel</span>({
+  <span class="prop">accessLevel</span>: <span class="str">'TRUSTED_AND_UNTRUSTED_CONTEXTS'</span>,
+});
+
+<span class="cm">// Initialize default slot on startup</span>
+<span class="kw">const</span> DEFAULT_SLOT = {
+  <span class="prop">id</span>: <span class="num">1</span>, <span class="prop">value</span>: <span class="str">''</span>,
+  <span class="prop">keybinding</span>: {
+    <span class="prop">ctrlKey</span>: <span class="num">false</span>, <span class="prop">shiftKey</span>: <span class="num">true</span>,
+    <span class="prop">altKey</span>: <span class="num">false</span>, <span class="prop">metaKey</span>: <span class="num">true</span>,
+    <span class="prop">code</span>: <span class="str">'Digit1'</span>, <span class="prop">display</span>: <span class="str">'Cmd+Shift+1'</span>,
+  },
+};
+
+chrome.storage.session.<span class="fn">get</span>([<span class="str">'slots'</span>], (result) => {
+  <span class="kw">if</span> (!result.slots || result.slots.length === <span class="num">0</span>) {
+    chrome.storage.session.<span class="fn">set</span>({ <span class="prop">slots</span>: [DEFAULT_SLOT], <span class="prop">enabled</span>: <span class="num">true</span> });
+  }
+});</code></pre>
+
+        <h3>Message Routing</h3>
+        <pre><code><span class="code-label">background.js &mdash; message handler</span>chrome.runtime.onMessage.<span class="fn">addListener</span>((msg, sender, sendResponse) => {
+  <span class="kw">if</span> (msg.type === <span class="str">'copied'</span>) {
+    <span class="cm">// Flash a green checkmark badge</span>
+    chrome.action.<span class="fn">setBadgeText</span>({ <span class="prop">text</span>: <span class="str">'&#10003;'</span> });
+    chrome.action.<span class="fn">setBadgeBackgroundColor</span>({ <span class="prop">color</span>: <span class="str">'#4CAF50'</span> });
+    <span class="fn">setTimeout</span>(() => chrome.action.<span class="fn">setBadgeText</span>({ <span class="prop">text</span>: <span class="str">''</span> }), <span class="num">1500</span>);
+  }
+
+  <span class="kw">if</span> (msg.type === <span class="str">'toggleEnabled'</span>) {
+    chrome.action.<span class="fn">setIcon</span>({
+      <span class="prop">path</span>: msg.enabled ? ICON_NORMAL : ICON_DISABLED,
+    });
+  }
+
+  <span class="kw">if</span> (msg.type === <span class="str">'getState'</span>) {
+    chrome.storage.session.<span class="fn">get</span>([<span class="str">'slots'</span>, <span class="str">'enabled'</span>], (result) => {
+      <span class="fn">sendResponse</span>({ <span class="prop">slots</span>: result.slots || [], <span class="prop">enabled</span>: result.enabled !== <span class="num">false</span> });
+    });
+    <span class="kw">return</span> <span class="num">true</span>; <span class="cm">// Keep channel open for async response</span>
+  }
+});</code></pre>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Key Pattern</div>
+          <code>return true</code> inside <code>onMessage</code> tells Chrome to keep the message
+          channel open for an async <code>sendResponse</code>. Without it, the port closes
+          immediately and the response is lost.
+        </div>
+
+        <h3>Push Updates to All Tabs</h3>
+        <pre><code><span class="code-label">background.js &mdash; broadcast changes</span>chrome.storage.session.onChanged.<span class="fn">addListener</span>(() => {
+  chrome.storage.session.<span class="fn">get</span>([<span class="str">'slots'</span>, <span class="str">'enabled'</span>], (result) => {
+    chrome.tabs.<span class="fn">query</span>({}, (tabs) => {
+      <span class="kw">const</span> msg = {
+        <span class="prop">type</span>: <span class="str">'stateUpdated'</span>,
+        <span class="prop">slots</span>: result.slots || [],
+        <span class="prop">enabled</span>: result.enabled !== <span class="num">false</span>,
+      };
+      <span class="kw">for</span> (<span class="kw">const</span> tab <span class="kw">of</span> tabs) {
+        chrome.tabs.<span class="fn">sendMessage</span>(tab.id, msg).<span class="fn">catch</span>(() => {});
+      }
+    });
+  });
+});</code></pre>
+      </section>
+
+      <section>
+        <h2><span class="step-num">Step 3</span>Content Script</h2>
+        <p class="section-desc">
+          The content script is injected into every webpage. It listens for keyboard shortcuts,
+          copies to clipboard, and shows toast notifications.
+        </p>
+
+        <h3>Keybinding Matching</h3>
+        <div class="callout callout-tip">
+          <div class="callout-title">Why e.code instead of e.key?</div>
+          On Mac, pressing Cmd+Shift+1 sets <code>e.key = "!"</code> (Shift transforms the
+          character), but <code>e.code = "Digit1"</code> always returns the physical key. Using
+          <code>e.code</code> makes matching reliable across platforms.
+        </div>
+
+        <pre><code><span class="code-label">content.js &mdash; cross-platform matching</span><span class="kw">function</span> <span class="fn">matchesKeybinding</span>(e, kb) {
+  <span class="kw">if</span> (!kb) <span class="kw">return</span> <span class="num">false</span>;
+  <span class="cm">// Treat Ctrl and Cmd as equivalent</span>
+  <span class="kw">const</span> eMainMod = e.ctrlKey || e.metaKey;
+  <span class="kw">const</span> kbMainMod = kb.ctrlKey || kb.metaKey;
+  <span class="kw">return</span> (
+    eMainMod === kbMainMod &&
+    e.shiftKey === kb.shiftKey &&
+    e.altKey === kb.altKey &&
+    e.code === kb.code
+  );
+}</code></pre>
+
+        <h3>Capture Phase Listener</h3>
+        <pre><code><span class="code-label">content.js &mdash; keyboard listener</span>document.<span class="fn">addEventListener</span>(
+  <span class="str">'keydown'</span>,
+  (e) => {
+    <span class="kw">if</span> (!enabled) <span class="kw">return</span>;
+    <span class="kw">for</span> (<span class="kw">const</span> slot <span class="kw">of</span> slots) {
+      <span class="kw">if</span> (<span class="fn">matchesKeybinding</span>(e, slot.keybinding) && slot.value) {
+        e.<span class="fn">preventDefault</span>();
+        e.<span class="fn">stopPropagation</span>();
+        <span class="fn">copyToClipboard</span>(slot.value).<span class="fn">then</span>(() => {
+          <span class="fn">showToast</span>(slot.value);
+          chrome.runtime.<span class="fn">sendMessage</span>({ <span class="prop">type</span>: <span class="str">'copied'</span> });
+        });
+        <span class="kw">return</span>;
+      }
+    }
+  },
+  <span class="num">true</span>, <span class="cm">// capture phase &mdash; fires before page handlers</span>
+);</code></pre>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Capture vs Bubble</div>
+          The third argument <code>true</code> puts the listener in the
+          <strong>capture phase</strong>, which fires top-down before the page's own handlers. This
+          lets CopyDeck intercept shortcuts before the page can consume them.
+        </div>
+
+        <h3>Clipboard with Fallback</h3>
+        <pre><code><span class="code-label">content.js &mdash; clipboard helpers</span><span class="kw">function</span> <span class="fn">copyToClipboard</span>(text) {
+  <span class="kw">if</span> (navigator.clipboard && navigator.clipboard.writeText) {
+    <span class="kw">return</span> navigator.clipboard.<span class="fn">writeText</span>(text)
+      .<span class="fn">catch</span>(() => <span class="fn">fallbackCopy</span>(text));
+  }
+  <span class="kw">return</span> <span class="fn">fallbackCopy</span>(text);
+}
+
+<span class="kw">function</span> <span class="fn">fallbackCopy</span>(text) {
+  <span class="kw">return new</span> <span class="fn">Promise</span>((resolve) => {
+    <span class="kw">const</span> textarea = document.<span class="fn">createElement</span>(<span class="str">'textarea'</span>);
+    textarea.value = text;
+    textarea.style.position = <span class="str">'fixed'</span>;
+    textarea.style.opacity = <span class="str">'0'</span>;
+    document.body.<span class="fn">appendChild</span>(textarea);
+    textarea.<span class="fn">select</span>();
+    document.<span class="fn">execCommand</span>(<span class="str">'copy'</span>);
+    textarea.<span class="fn">remove</span>();
+    <span class="fn">resolve</span>();
+  });
+}</code></pre>
+      </section>
+
+      <section>
+        <h2><span class="step-num">Step 4</span>Popup UI</h2>
+        <p class="section-desc">
+          The popup is the control panel users see when clicking the extension icon. It uses vanilla
+          HTML, CSS, and JavaScript with event delegation.
+        </p>
+
+        <pre><code><span class="code-label">popup/popup.html</span><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="str">"header"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="str">"header-info"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;h1&gt;</span>CopyDeck<span class="tag">&lt;/h1&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="str">"subtitle"</span><span class="tag">&gt;</span>Keyboard clipboard manager<span class="tag">&lt;/div&gt;</span>
+  <span class="tag">&lt;/div&gt;</span>
+  <span class="tag">&lt;label</span> <span class="attr">class</span>=<span class="str">"toggle"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="str">"checkbox"</span> <span class="attr">id</span>=<span class="str">"enableToggle"</span> <span class="attr">checked</span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;span</span> <span class="attr">class</span>=<span class="str">"slider"</span><span class="tag">&gt;&lt;/span&gt;</span>
+  <span class="tag">&lt;/label&gt;</span>
+<span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;div</span> <span class="attr">id</span>=<span class="str">"slotList"</span><span class="tag">&gt;&lt;/div&gt;</span>
+<span class="tag">&lt;button</span> <span class="attr">id</span>=<span class="str">"addSlot"</span> <span class="attr">class</span>=<span class="str">"add-btn"</span><span class="tag">&gt;</span>+ Add Slot<span class="tag">&lt;/button&gt;</span></code></pre>
+
+        <h3>Event Delegation</h3>
+        <p>
+          Instead of attaching listeners to each dynamically-created slot, one listener on the
+          parent handles all events:
+        </p>
+
+        <pre><code><span class="code-label">popup/popup.js &mdash; delegated events</span><span class="cm">// Text input changes &mdash; save immediately</span>
+slotList.<span class="fn">addEventListener</span>(<span class="str">'input'</span>, (e) => {
+  <span class="kw">if</span> (e.target.<span class="fn">matches</span>(<span class="str">'input[type="text"]'</span>)) {
+    <span class="kw">const</span> id = <span class="fn">Number</span>(e.target.dataset.id);
+    <span class="kw">const</span> slot = slots.<span class="fn">find</span>((s) => s.id === id);
+    <span class="kw">if</span> (slot) {
+      slot.value = e.target.value;
+      <span class="fn">saveSlots</span>();
+    }
+  }
+});
+
+<span class="cm">// Button clicks &mdash; record or clear</span>
+slotList.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, (e) => {
+  <span class="kw">const</span> btn = e.target.<span class="fn">closest</span>(<span class="str">'button'</span>);
+  <span class="kw">if</span> (!btn) <span class="kw">return</span>;
+  <span class="kw">const</span> action = btn.dataset.action;
+  <span class="kw">const</span> id = <span class="fn">Number</span>(btn.dataset.id);
+  <span class="cm">// ... handle record / clear</span>
+});</code></pre>
+
+        <h3>Keybinding Recording</h3>
+        <pre><code><span class="code-label">popup/popup.js &mdash; recording mode</span>document.<span class="fn">addEventListener</span>(<span class="str">'keydown'</span>, (e) => {
+  <span class="kw">if</span> (recordingSlotId === <span class="num">null</span>) <span class="kw">return</span>;
+  e.<span class="fn">preventDefault</span>();
+
+  <span class="cm">// Ignore lone modifier keys</span>
+  <span class="kw">if</span> ([<span class="str">'Control'</span>, <span class="str">'Shift'</span>, <span class="str">'Alt'</span>, <span class="str">'Meta'</span>].<span class="fn">includes</span>(e.key)) <span class="kw">return</span>;
+
+  <span class="cm">// Must include at least one primary modifier</span>
+  <span class="kw">if</span> (!e.ctrlKey && !e.altKey && !e.metaKey) {
+    <span class="fn">showError</span>(recordingSlotId, <span class="str">'Shortcut must include Ctrl, Alt, or Cmd'</span>);
+    <span class="kw">return</span>;
+  }
+
+  <span class="kw">const</span> kb = {
+    <span class="prop">ctrlKey</span>: e.ctrlKey, <span class="prop">shiftKey</span>: e.shiftKey,
+    <span class="prop">altKey</span>: e.altKey, <span class="prop">metaKey</span>: e.metaKey,
+    <span class="prop">code</span>: e.code, <span class="prop">display</span>: <span class="fn">keybindingToString</span>(kb),
+  };
+
+  <span class="kw">if</span> (<span class="fn">isDuplicateKeybinding</span>(kb, recordingSlotId)) {
+    <span class="fn">showError</span>(recordingSlotId, <span class="str">`"${kb.display}" is already in use`</span>);
+    <span class="kw">return</span>;
+  }
+
+  slot.keybinding = kb;
+  <span class="fn">saveSlots</span>();
+  recordingSlotId = <span class="num">null</span>;
+  <span class="fn">renderSlots</span>();
+});</code></pre>
+      </section>
+
+      <!-- Testing -->
+      <section id="testing">
+        <h2><span class="step-num">Step 5</span>Load &amp; Test</h2>
+        <p class="section-desc">Load your extension in Chrome and verify everything works.</p>
+
+        <div class="callout callout-info">
+          <div class="callout-title">Assuming Web Store install</div>
+          Install CopyDeck from the Chrome Web Store, pin it to the toolbar, then run through the
+          checklist below to verify everything works.
+        </div>
+
+        <h3>Testing Checklist</h3>
+        <ul class="checklist">
+          <li>Click icon &mdash; popup opens with one default slot</li>
+          <li>Enter a value (e.g., "hello@email.com") in slot #1</li>
+          <li>Open a new tab, go to any website</li>
+          <li>Press Cmd+Shift+1 (Ctrl+Shift+1 on Windows)</li>
+          <li>Toast appears: "&#10003; Copied: hello@email.com"</li>
+          <li>Badge shows &#10003; on the extension icon</li>
+          <li>Press Cmd+V &mdash; value pastes correctly</li>
+          <li>Add a second slot with a different keybinding</li>
+          <li>Try recording a duplicate keybinding &mdash; error shown</li>
+          <li>Toggle extension off &mdash; icon greys out, shortcuts disabled</li>
+          <li>Close and reopen browser &mdash; slots are cleared (session storage)</li>
+        </ul>
+
+        <h3>Automated Testing with Playwright</h3>
+        <pre><code><span class="code-label">Terminal</span>npm init -y
+npm install playwright @playwright/test
+npx playwright install chromium</code></pre>
+
+        <pre><code><span class="code-label">test-extension.spec.js</span><span class="kw">const</span> { test, expect, chromium } = <span class="fn">require</span>(<span class="str">'@playwright/test'</span>);
+<span class="kw">const</span> path = <span class="fn">require</span>(<span class="str">'path'</span>);
+
+<span class="fn">test</span>(<span class="str">'CopyDeck copies value to clipboard'</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> context = <span class="kw">await</span> chromium.<span class="fn">launchPersistentContext</span>(<span class="str">''</span>, {
+    <span class="prop">headless</span>: <span class="num">false</span>,
+    <span class="prop">args</span>: [
+      <span class="str">`--disable-extensions-except=${path.<span class="fn">resolve</span>(__dirname)}`</span>,
+      <span class="str">`--load-extension=${path.<span class="fn">resolve</span>(__dirname)}`</span>,
+    ],
+  });
+
+  <span class="kw">const</span> sw = context.<span class="fn">serviceWorkers</span>()[<span class="num">0</span>]
+    || (<span class="kw">await</span> context.<span class="fn">waitForEvent</span>(<span class="str">'serviceworker'</span>));
+  <span class="kw">const</span> extId = sw.<span class="fn">url</span>().<span class="fn">split</span>(<span class="str">'/'</span>)[<span class="num">2</span>];
+
+  <span class="cm">// Set a value via popup</span>
+  <span class="kw">const</span> popup = <span class="kw">await</span> context.<span class="fn">newPage</span>();
+  <span class="kw">await</span> popup.<span class="fn">goto</span>(<span class="str">`chrome-extension://${extId}/popup/popup.html`</span>);
+  <span class="kw">await</span> popup.<span class="fn">fill</span>(<span class="str">'input[type="text"]'</span>, <span class="str">'test-value'</span>);
+
+  <span class="cm">// Test on a real page</span>
+  <span class="kw">const</span> page = <span class="kw">await</span> context.<span class="fn">newPage</span>();
+  <span class="kw">await</span> page.<span class="fn">goto</span>(<span class="str">'https://example.com'</span>);
+  <span class="kw">await</span> page.keyboard.<span class="fn">down</span>(<span class="str">'Control'</span>);
+  <span class="kw">await</span> page.keyboard.<span class="fn">down</span>(<span class="str">'Shift'</span>);
+  <span class="kw">await</span> page.keyboard.<span class="fn">press</span>(<span class="str">'Digit1'</span>);
+  <span class="kw">await</span> page.keyboard.<span class="fn">up</span>(<span class="str">'Shift'</span>);
+  <span class="kw">await</span> page.keyboard.<span class="fn">up</span>(<span class="str">'Control'</span>);
+
+  <span class="kw">const</span> clipboard = <span class="kw">await</span> page.<span class="fn">evaluate</span>(
+    () => navigator.clipboard.<span class="fn">readText</span>()
+  );
+  <span class="fn">expect</span>(clipboard).<span class="fn">toBe</span>(<span class="str">'test-value'</span>);
+  <span class="kw">await</span> context.<span class="fn">close</span>();
+});</code></pre>
+      </section>
+
+      <section>
+        <h2><span class="step-num">Pitfalls</span>Common Gotchas</h2>
+        <p class="section-desc">
+          Lessons learned from building CopyDeck that will save you debugging time.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Problem</th>
+              <th>Cause</th>
+              <th>Fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Content script gets empty storage</td>
+              <td><code>chrome.storage.session</code> is restricted by default</td>
+              <td>Call <code>setAccessLevel()</code> in background.js</td>
+            </tr>
+            <tr>
+              <td>Shift+1 records as "!"</td>
+              <td><code>e.key</code> changes with modifiers</td>
+              <td>Use <code>e.code</code> (physical key position)</td>
+            </tr>
+            <tr>
+              <td>Old content script after reload</td>
+              <td>Existing tabs keep the old script</td>
+              <td>Open new tabs or refresh after reloading</td>
+            </tr>
+            <tr>
+              <td>Clipboard API fails silently</td>
+              <td>Some pages block <code>navigator.clipboard</code></td>
+              <td>Fallback to <code>document.execCommand('copy')</code></td>
+            </tr>
+            <tr>
+              <td><code>sendResponse</code> never arrives</td>
+              <td>Message port closes after sync return</td>
+              <td><code>return true</code> in <code>onMessage</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2><span class="step-num">Reference</span>Chrome Extension Concepts</h2>
+        <p class="section-desc">Key APIs and patterns used in CopyDeck.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Concept</th>
+              <th>Where</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Manifest V3</td>
+              <td>manifest.json</td>
+              <td>Extension configuration</td>
+            </tr>
+            <tr>
+              <td>Service Worker</td>
+              <td>background.js</td>
+              <td>Background processing (replaces MV2 background pages)</td>
+            </tr>
+            <tr>
+              <td>Content Scripts</td>
+              <td>content.js</td>
+              <td>Code injected into web pages</td>
+            </tr>
+            <tr>
+              <td><code>chrome.storage.session</code></td>
+              <td>All files</td>
+              <td>Ephemeral storage (cleared on restart)</td>
+            </tr>
+            <tr>
+              <td><code>chrome.runtime.sendMessage</code></td>
+              <td>Content &harr; Background</td>
+              <td>Cross-context communication</td>
+            </tr>
+            <tr>
+              <td><code>chrome.tabs.sendMessage</code></td>
+              <td>Background &rarr; Content</td>
+              <td>Push updates to all tabs</td>
+            </tr>
+            <tr>
+              <td>Event Delegation</td>
+              <td>popup.js</td>
+              <td>Efficient DOM event handling for dynamic elements</td>
+            </tr>
+            <tr>
+              <td>Capture Phase</td>
+              <td>content.js</td>
+              <td>Intercept keys before page handlers</td>
+            </tr>
+            <tr>
+              <td><code>e.code</code> vs <code>e.key</code></td>
+              <td>All keybinding code</td>
+              <td>Cross-platform physical key matching</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>
+        Built with vanilla JS &middot;
+        <a href="https://github.com/sudo7ak/copydeck" target="_blank">View on GitHub</a> &middot;
+        MIT License
+      </p>
+    </footer>
+  </body>
+</html>

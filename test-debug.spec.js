@@ -5,7 +5,7 @@ const extensionPath = path.resolve(__dirname);
 
 test('full debug diagnostic', async () => {
   const context = await chromium.launchPersistentContext('', {
-    headless: false,
+    headless: !!process.env.CI,
     args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
   });
 

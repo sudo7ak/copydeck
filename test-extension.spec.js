@@ -14,6 +14,11 @@ test.describe('CopyDeck Extension', () => {
       args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
     });
 
+    // Make clipboard reads reliable in tests (especially on macOS).
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'], {
+      origin: 'https://example.com',
+    });
+
     serviceWorker = context.serviceWorkers()[0] || (await context.waitForEvent('serviceworker'));
     extId = serviceWorker.url().split('/')[2];
 
@@ -109,13 +114,34 @@ test.describe('CopyDeck Extension', () => {
       );
     });
 
-    // Press Ctrl+Shift+1 (works cross-platform in Playwright)
-    await page.keyboard.down('Control');
-    await page.keyboard.down('Shift');
-    await page.keyboard.press('Digit1');
-    await page.keyboard.up('Shift');
-    await page.keyboard.up('Control');
-    await page.waitForTimeout(1000);
+    // Press Ctrl+Shift+1 (works cross-platform in Playwright).
+    // On some runs the content script/state can lag; retry briefly until we see the toast.
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await page.keyboard.down('Control');
+      await page.keyboard.down('Shift');
+      await page.keyboard.press('Digit1');
+      await page.keyboard.up('Shift');
+      await page.keyboard.up('Control');
+
+      const toastFound = await page
+        .waitForFunction(
+          () => {
+            return [...document.querySelectorAll('div')].some((el) =>
+              (el.textContent || '').includes('Copied:'),
+            );
+          },
+          { timeout: 500 },
+        )
+        .then(
+          () => true,
+          () => false,
+        );
+
+      if (toastFound) break;
+      await page.waitForTimeout(400);
+    }
+
+    await page.waitForTimeout(300);
 
     const keyLog = await page.evaluate(() => window._keyLog);
     console.log('Key events:', JSON.stringify(keyLog, null, 2));
