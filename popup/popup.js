@@ -119,6 +119,7 @@ function renderSlots() {
           ${isRecording ? 'Cancel' : 'Record'}
         </button>
         <button class="btn btn-clear" data-action="clear" data-id="${slot.id}">Clear</button>
+        <button class="btn btn-delete" data-action="delete" data-id="${slot.id}" ${slots.length === 1 ? 'disabled' : ''}>Delete</button>
       </div>
       <div class="error-msg" data-error="${slot.id}"></div>
     `;
@@ -174,6 +175,12 @@ slotList.addEventListener('click', (e) => {
     if (slot) {
       slot.value = '';
       slot.keybinding = null;
+      saveSlots();
+      renderSlots();
+    }
+  } else if (action === 'delete') {
+    if (slots.length > 1) {
+      slots = slots.filter((s) => s.id !== id);
       saveSlots();
       renderSlots();
     }

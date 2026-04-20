@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CopyDeck",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Bind keyboard shortcuts to text values for quick clipboard copying",
   "permissions": ["clipboardWrite", "storage", "activeTab"],
   "optional_host_permissions": ["http://*/*", "https://*/*"],
